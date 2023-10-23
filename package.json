@@ -1,0 +1,21 @@
+{
+  "name": "salat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "formatted.js",
+  "scripts": {
+    "run": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "salat": "./apps.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.5.0",
+    "chalk": "^4.1.2",
+    "dotenv": "^16.3.1",
+    "moment": "^2.29.4"
+  }
+}
