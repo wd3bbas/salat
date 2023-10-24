@@ -2,7 +2,7 @@
 const axios = require("axios");
 const chalk = require("chalk");
 const moment = require("moment");
-require('dotenv').config();
+require('dotenv').config({path: __dirname + '/.env'});
 
 // Import functions from a separate file
 const {
