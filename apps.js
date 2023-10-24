@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const axios = require("axios");
 const chalk = require("chalk");
 const moment = require("moment");
@@ -20,7 +21,7 @@ const getPrayerTimes = async (country, city) =>
 // Function to get prayer times data from Aladhan.com
 const getPrayerTimesData = async (country, city) =>
   await getPrayerTimes(country, city).then((res) => res.data.data.timings);
-
+// console.log(process.env.COUNTRY);
 const printPrayerTimes = async (
   country = process.argv[2] || process.env.COUNTRY,
   city = process.argv[3] || process.env.CITY
@@ -30,10 +31,16 @@ const printPrayerTimes = async (
     return;
   }
 
-  const prayerTimes = await getPrayerTimesData(country, city);
+
+   const prayerTimes = await getPrayerTimesData(country, city);
+
+   const toDelete = ["Sunrise", "Imsak", "Midnight", "Firstthird", "Lastthird"];
+   toDelete.forEach((d) =>
+     prayerTimes.hasOwnProperty(d) ? delete prayerTimes[d] : ""
+   );
 
   console.log(` 🕌 ${city}, ${country} Prayer Times 🕌`);
-  console.log(` 📆 ${new Date().toDateString()}  \n`);
+  console.log(` 📆 ${new Date().toDateString()}📆  \n`);
 
   const currentPrayer = getCurrentPrayer(prayerTimes);
   const nextPrayer = getNextPrayerTime(prayerTimes);
@@ -51,15 +58,15 @@ const printPrayerTimes = async (
   const nextDifference = nextPrayerMoment.fromNow();
 
   console.log(`Current Prayer: ${currentPrayer} - ${currentPrayerTime} | ${currentDifference}`);
-  console.log(`Next Prayer: ${nextPrayer.name} - ${nextPrayerTime} | Insha'allah in ${nextDifference}\n`);
-  
+  // console.log(`Next Prayer: ${nextPrayer.name} - ${nextPrayerTime} | Insha'allah ${nextDifference}\n`);
+  console.log()
   console.log("Prayer Times for the Day:");
   console.log(`
-  ${chalk.cyan("Fajr")}     -->   ${currentPrayerTime == prayerTimes.Fajr ? chalk.green.bold(prayerTimes.Fajr): chalk.green(prayerTimes.Fajr)}
-  ${chalk.cyan("Dhuhr")}    -->   ${currentPrayerTime == prayerTimes.Dhuhr ? chalk.green.bold(prayerTimes.Dhuhr): chalk.green(prayerTimes.Dhuhr)}
-  ${chalk.cyan("Asr")}      -->   ${currentPrayerTime == prayerTimes.Asr ? chalk.green.bold(prayerTimes.Asr): chalk.green(prayerTimes.Asr)}
-  ${chalk.cyan("Maghrib")}  -->   ${currentPrayerTime == prayerTimes.Maghrib ? chalk.green.bold(prayerTimes.Maghrib): chalk.green(prayerTimes.Maghrib)}
-  ${chalk.cyan("Isha")}     -->   ${currentPrayerTime == prayerTimes.Isha ? chalk.green.bold(prayerTimes.Isha): chalk.green(prayerTimes.Isha)}
+  ${chalk.cyan("Fajr")}     -->   ${nextPrayerTime == prayerTimes.Fajr ? `${chalk.green.bold(prayerTimes.Fajr)} Insha'allah ${nextDifference}`: chalk.green(prayerTimes.Fajr)}
+  ${chalk.cyan("Dhuhr")}    -->   ${nextPrayerTime == prayerTimes.Dhuhr ? `${chalk.green.bold(prayerTimes.Dhuhr)} Insha'allah ${nextDifference}`: chalk.green(prayerTimes.Dhuhr)}
+  ${chalk.cyan("Asr")}      -->   ${nextPrayerTime == prayerTimes.Asr ? `${chalk.green.bold(prayerTimes.Asr)} Insha'allah ${nextDifference}`: chalk.green(prayerTimes.Asr)}
+  ${chalk.cyan("Maghrib")}  -->   ${nextPrayerTime == prayerTimes.Maghrib ? `${chalk.green.bold(prayerTimes.Maghrib)} Insha'allah ${nextDifference}`: chalk.green(prayerTimes.Maghrib)}
+  ${chalk.cyan("Isha")}     -->   ${nextPrayerTime == prayerTimes.Isha ? `${chalk.green.bold(prayerTimes.Isha)} Insha'allah ${nextDifference}`: chalk.green(prayerTimes.Isha)}
   `);
 };
 
