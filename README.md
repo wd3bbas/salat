@@ -1,9 +1,10 @@
 # Daily prayer time in terminal
-![image](https://github.com/wd3bbas/salat/assets/1912670/e3ee53c8-11a5-4a02-be35-ea35cb19c208)
+![image](https://github.com/wd3bbas/salat/assets/1912670/c97526a9-13d9-4db5-97ed-985e46e8e069)
 
 
 ## Customizing Country and City
 
 You can customize the country and city settings for temporary use while running the application. By default, the values are set to KSA (Kingdom of Saudi Arabia) and Riyadh in the `.env` file.
 
-![image](https://github.com/wd3bbas/salat/assets/1912670/4963f327-352d-4205-a05d-c6c2f7e2e493)
+![image](https://github.com/wd3bbas/salat/assets/1912670/ff602bfc-32be-44df-986a-d547e7e29f0b)
+
