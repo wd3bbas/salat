@@ -258,6 +258,10 @@ const printPrayerTimes = async (country, city, method) => {
   const prayerTimes = { ...prayerData.timings };
   STRIP.forEach((k) => delete prayerTimes[k]);
 
+  const isFriday    = new Date().getDay() === 5;
+  const prayerLabel = (name) => isFriday && name === "Dhuhr" ? "Dhuhr / Jumu'ah" : name;
+  const labelWidth  = isFriday ? 15 : 7;
+
   const { hijri } = prayerData;
   const hijriStr = hijri ? `${hijri.day} ${hijri.month.en} ${hijri.year} AH` : "";
 
@@ -294,17 +298,17 @@ const printPrayerTimes = async (country, city, method) => {
     const { h, m } = parseTime(t);
     const target = new Date();
     target.setHours(h, m, 0, 0);
-    console.log(` Current prayer:  ${chalk.bold.cyan(currentPrayer)} — ${t.split(" ")[0]} (${fromNow(target)})`);
+    console.log(` Current prayer:  ${chalk.bold.cyan(prayerLabel(currentPrayer))} — ${t.split(" ")[0]} (${fromNow(target)})`);
   } else {
     console.log(` Current prayer:  ${chalk.dim("before Fajr")}`);
   }
 
-  console.log(` Next prayer:     ${chalk.bold.green(nextPrayer.name)} — ${nextPrayerTime} (${inshaAllah(nextDifference)})\n`);
+  console.log(` Next prayer:     ${chalk.bold.green(prayerLabel(nextPrayer.name))} — ${nextPrayerTime} (${inshaAllah(nextDifference)})\n`);
   console.log(" ─────────────────────────────");
 
   const printRow = (name, time) => {
-    const isNext = (!isNextDay && nextPrayer.name === name) || (isNextDay && name === "Fajr");
-    const label   = chalk.cyan(name.padEnd(7));
+    const isNext  = (!isNextDay && nextPrayer.name === name) || (isNextDay && name === "Fajr");
+    const label   = chalk.cyan(prayerLabel(name).padEnd(labelWidth));
     const timeStr = isNext ? chalk.green.bold(time.split(" ")[0]) : chalk.green(time.split(" ")[0]);
     const marker  = isNext ? chalk.yellow(`  ← ${inshaAllah(nextDifference)}`) : "";
     return `  ${label}   ${timeStr}${marker}`;
