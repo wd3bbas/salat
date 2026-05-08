@@ -1,14 +1,14 @@
 {
-  "name": "salat",
+  "name": "salah-cli",
   "version": "1.0.0",
-  "description": "Islamic prayer times in your terminal",
+  "description": "Islamic prayer times in your terminal — Hijri date, Qibla, Ramadan mode, notifications, and calendar export",
   "main": "apps.js",
   "scripts": {
     "start": "node apps.js",
     "test": "jest"
   },
   "bin": {
-    "salat": "./apps.js"
+    "salah": "./apps.js"
   },
   "jest": {
     "testMatch": [
@@ -16,13 +16,33 @@
     ]
   },
   "keywords": [
-    "salat",
+    "salah",
+    "salah-cli",
     "prayer",
+    "prayer-times",
     "islam",
-    "cli"
+    "muslim",
+    "hijri",
+    "ramadan",
+    "qibla",
+    "cli",
+    "terminal",
+    "nodejs",
+    "azan"
   ],
-  "author": "",
+  "author": "wd3bbas",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wd3bbas/salah-cli.git"
+  },
+  "homepage": "https://github.com/wd3bbas/salah-cli#readme",
+  "bugs": {
+    "url": "https://github.com/wd3bbas/salah-cli/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "axios": "^1.7.8",
     "chalk": "^4.1.2",

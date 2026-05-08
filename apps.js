@@ -28,7 +28,7 @@ const {
 const config = readConfig();
 
 program
-  .name("salat")
+  .name("salah")
   .description("Display Islamic prayer times in your terminal")
   .option("--country <country>",      "country name or code",                                    process.env.COUNTRY || config.country)
   .option("--city <city>",            "city name",                                               process.env.CITY    || config.city)
