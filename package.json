@@ -1,21 +1,36 @@
 {
   "name": "salat",
   "version": "1.0.0",
-  "description": "",
+  "description": "Islamic prayer times in your terminal",
   "main": "apps.js",
   "scripts": {
-    "run": "echo \"Error: no test specified\" && exit 1"
+    "start": "node apps.js",
+    "test": "jest"
   },
   "bin": {
     "salat": "./apps.js"
   },
-  "keywords": [],
+  "jest": {
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
+  },
+  "keywords": [
+    "salat",
+    "prayer",
+    "islam",
+    "cli"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "axios": "^1.7.8",
     "chalk": "^4.1.2",
+    "commander": "^14.0.3",
     "dotenv": "^16.3.1",
-    "moment": "^2.29.4"
+    "node-notifier": "^10.0.1"
+  },
+  "devDependencies": {
+    "jest": "^30.4.0"
   }
 }
