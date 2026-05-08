@@ -1,7 +1,7 @@
 # Salat — Prayer Times in Your Terminal
 
 A fast, offline-capable CLI tool that displays Islamic prayer times with Hijri date,
-live countdown, weekly schedule, Qibla direction, and desktop notifications.
+live countdown, weekly schedule, Qibla direction, desktop notifications, and calendar export.
 
 ---
 
@@ -10,14 +10,21 @@ live countdown, weekly schedule, Qibla direction, and desktop notifications.
 - **5 daily prayer times** with current and next prayer highlighted
 - **Hijri calendar** date shown alongside the Gregorian date
 - **Insha'allah** countdown to the next prayer
+- **Progress bar** showing how far through the current prayer period you are
+- **Arabic prayer names** (`--ar`) displayed alongside English
+- **Jumu'ah label** shown automatically on Fridays
+- **Ramadan mode** — auto-detected; highlights Imsak (Suhoor) and Maghrib (Iftar)
+- **Prayer time offsets** — adjust times by ±N minutes to match your local mosque
 - **Daily caching** — responses cached per-day; repeated runs are instant and work offline
 - **Desktop notifications** — alert N minutes before each prayer (designed for cron)
 - **Weekly view** — 7-day prayer schedule at a glance
 - **Qibla direction** — accurate compass bearing to Mecca via OpenStreetMap geocoding
 - **Watch mode** — live display that refreshes every minute
+- **Calendar export** — `.ics` file importable into Apple Calendar, Google Calendar, or Outlook
 - **Auto-detect location** via IP when city/country are not configured
 - **Persistent config** — save defaults to `~/.config/salat/config.json`
 - **23 calculation methods** — ISNA, MWL, Umm Al-Qura, Egyptian, Gulf, and more
+- **CI** — tests run on Node 18, 20 and 22 via GitHub Actions
 
 ---
 
@@ -51,6 +58,7 @@ salat --country KSA --city Jeddah --save
 COUNTRY=KSA
 CITY=Jeddah
 METHOD=8
+OFFSET=Fajr=+5,Dhuhr=-2
 ```
 
 ### Option 3 — Pass flags per run
@@ -66,16 +74,18 @@ If no location is configured, the tool auto-detects your city and country via yo
 ## Usage
 
 ```bash
-salat                                    # today's prayer times (default)
-salat --week                             # 7-day prayer schedule
-salat --qibla                            # Qibla direction for your location
-salat --watch                            # live countdown, refreshes every minute
-salat --notify                           # notify if a prayer is within 5 minutes
-salat --notify 10                        # notify 10 minutes before
-salat --country US --city "New York"     # one-off for a different city
-salat --country SA --city Mecca --save   # change and persist location
-salat --method 2                         # use ISNA calculation method
-salat --help                             # full usage
+salat                                        # today's prayer times
+salat --ar                                   # include Arabic prayer names
+salat --offset "Fajr=+5,Dhuhr=-2"           # adjust times to match local mosque
+salat --week                                 # 7-day prayer schedule
+salat --qibla                                # Qibla direction
+salat --watch                                # live countdown, refreshes every minute
+salat --export                               # export .ics calendar file (7 days)
+salat --export ~/Desktop/prayers.ics         # export to a specific path
+salat --notify                               # notify if a prayer is within 5 minutes
+salat --notify 10                            # notify 10 minutes before
+salat --country SA --city Mecca --save       # change and persist location
+salat --help                                 # full usage
 ```
 
 ---
@@ -88,16 +98,56 @@ salat --help                             # full usage
  🕌  Jeddah, KSA — Prayer Times
  📆  Fri May 08 2026  |  21 Dhū al-Qaʿdah 1447 AH
 
- Current prayer:  Fajr — 04:20 (8 minutes ago)
- Next prayer:     Dhuhr — 12:19 (In 8 hours Insha'allah)
+ Current prayer:  Fajr — 04:20 (39 minutes ago)
+ Next prayer:     Dhuhr / Jumu'ah — 12:19 (In 7 hours Insha'allah)
+ Progress:        ██░░░░░░░░░░░░░░░░░░  8%
 
- ─────────────────────────────
-  Fajr      04:20
-  Dhuhr     12:19  ← In 8 hours Insha'allah
-  Asr       15:38
-  Maghrib   18:51
-  Isha      20:21
- ─────────────────────────────
+ ───────────────────────────────
+  Fajr              04:20
+  Dhuhr / Jumu'ah   12:19  ← In 7 hours Insha'allah
+  Asr               15:38
+  Maghrib           18:51
+  Isha              20:21
+ ───────────────────────────────
+```
+
+### With Arabic names — `salat --ar`
+
+```
+ 🕌  Jeddah, KSA — Prayer Times
+ 📆  Fri May 08 2026  |  21 Dhū al-Qaʿdah 1447 AH
+
+ Current prayer:  Fajr (الفجر) — 04:20 (45 minutes ago)
+ Next prayer:     Dhuhr / Jumu'ah (الظهر) — 12:19 (In 7 hours Insha'allah)
+ Progress:        ██░░░░░░░░░░░░░░░░░░  9%
+
+ ───────────────────────────────
+  Fajr (الفجر)              04:20
+  Dhuhr / Jumu'ah (الظهر)   12:19  ← In 7 hours Insha'allah
+  Asr (العصر)               15:38
+  Maghrib (المغرب)          18:51
+  Isha (العشاء)             20:21
+ ───────────────────────────────
+```
+
+### Ramadan mode (auto-detected in Ramadan)
+
+```
+ 🕌  Jeddah, KSA — Prayer Times  🌙 Ramadan Mubarak
+ 📆  Mon Mar 02 2026  |  2 Ramaḍān 1447 AH
+
+ Current prayer:  Imsak / Suhoor — 04:10 (15 minutes ago)
+ Next prayer:     Fajr — 04:25 (In 0 minutes Insha'allah)
+ Progress:        ███████████████████░  97%
+
+ ───────────────────────────────
+  Imsak / Suhoor   04:10
+  Fajr             04:25  ← In 0 minutes Insha'allah
+  Dhuhr            12:19
+  Asr              15:38
+  Maghrib / Iftar  18:51
+  Isha             20:21
+ ───────────────────────────────
 ```
 
 ### Weekly view — `salat --week`
@@ -105,17 +155,17 @@ salat --help                             # full usage
 ```
  🕌  Jeddah, KSA — Weekly Prayer Times
 
- ────────────────────────────────────────────────────────
+ ─────────────────────────────────────────────────────────
   Date          Fajr   Dhuhr  Asr    Maghrib Isha
- ────────────────────────────────────────────────────────
-  Fri May 08    04:20   12:19   15:38   18:51   20:21   ← today
+ ─────────────────────────────────────────────────────────
+  Fri May 08    04:20   12:19   15:38   18:51   20:21   ← today · Jumu'ah
   Sat May 09    04:20   12:19   15:38   18:52   20:22
   Sun May 10    04:19   12:19   15:38   18:52   20:22
   Mon May 11    04:18   12:19   15:38   18:53   20:23
   Tue May 12    04:18   12:19   15:37   18:53   20:23
   Wed May 13    04:17   12:19   15:37   18:53   20:23
   Thu May 14    04:16   12:19   15:37   18:54   20:24
- ────────────────────────────────────────────────────────
+ ─────────────────────────────────────────────────────────
 ```
 
 ### Qibla direction — `salat --qibla`
@@ -127,10 +177,25 @@ salat --help                             # full usage
      Bearing     : 101.8° (ESE)
 ```
 
-### Watch mode — `salat --watch`
+### Calendar export — `salat --export`
 
-Same as the default view but the screen refreshes every minute with a live countdown.
-Press `Ctrl+C` to exit.
+```
+  Calendar exported → salat-Jeddah-08-05-2026.ics
+  Import into Apple Calendar, Google Calendar, or Outlook.
+```
+
+---
+
+## Prayer Time Offsets
+
+Adjust any prayer time by ±N minutes to match your local mosque's schedule:
+
+```bash
+salat --offset "Fajr=+5,Dhuhr=-2,Asr=+3"
+
+# Save the offset so it applies every run
+salat --country KSA --city Jeddah --offset "Fajr=+5" --save
+```
 
 ---
 
@@ -185,5 +250,7 @@ Full list: [aladhan.com/prayer-times-api](https://aladhan.com/prayer-times-api)
 npm test       # run unit tests (Jest)
 ```
 
-Tests cover `getCurrentPrayer`, `getNextPrayerTime`, `fromNow`, and `formatDate`
-across 20 cases.
+34 tests across `getCurrentPrayer`, `getNextPrayerTime`, `fromNow`, `formatDate`,
+`parseOffsets`, `applyOffsets`, and `makeProgressBar`.
+
+Tests run automatically on push and pull request via GitHub Actions (Node 18, 20, 22).

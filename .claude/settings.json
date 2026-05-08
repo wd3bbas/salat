@@ -15,7 +15,10 @@
       "Bash(node apps.js --notify 600)",
       "Bash(node -e ' *)",
       "Bash(node apps.js --notify 999)",
-      "Bash(echo \"notify exit: $?\")"
+      "Bash(echo \"notify exit: $?\")",
+      "Bash(node apps.js --ar)",
+      "Bash(node apps.js --offset \"Fajr=+5,Dhuhr=-3\")",
+      "Bash(node apps.js --export)"
     ],
     "additionalDirectories": [
       "/Users/mohamust/.cache/salat"
