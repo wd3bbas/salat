@@ -18,7 +18,10 @@
       "Bash(echo \"notify exit: $?\")",
       "Bash(node apps.js --ar)",
       "Bash(node apps.js --offset \"Fajr=+5,Dhuhr=-3\")",
-      "Bash(node apps.js --export)"
+      "Bash(node apps.js --export)",
+      "Bash(npm audit *)",
+      "Bash(npm outdated *)",
+      "Bash(npm show *)"
     ],
     "additionalDirectories": [
       "/Users/mohamust/.cache/salat"
