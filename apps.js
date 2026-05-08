@@ -9,65 +9,124 @@ const {
   formatDate,
   getCurrentPrayer,
   getNextPrayerTime,
+  getIpInfo,
 } = require("./func.js");
 
-// API URL from Aladhan.com to get prayer times
-const API_URL = `http://api.aladhan.com/v1/timingsByCity/${formatDate()}?method=8&`;
-
 // Function to get prayer times from Aladhan.com
-const getPrayerTimes = async (country, city) =>
-  await axios.get(`${API_URL}&country=${country}&city=${city}`);
+const getPrayerTimes = async (country, city, dateStr = formatDate()) => {
+  return axios.get(`http://api.aladhan.com/v1/timingsByCity/${dateStr}?method=8&country=${country}&city=${city}`);
+};
 
 // Function to get prayer times data from Aladhan.com
-const getPrayerTimesData = async (country, city) =>
-  await getPrayerTimes(country, city).then((res) => res.data.data.timings);
-// console.log(process.env.COUNTRY);
+const getPrayerTimesData = async (country, city, dateStr = formatDate()) => {
+  const res = await getPrayerTimes(country, city, dateStr);
+  return res.data.data.timings;
+};
+
 const printPrayerTimes = async (
   country = process.argv[2] || process.env.COUNTRY,
   city = process.argv[3] || process.env.CITY
 ) => {
   if (!country || !city) {
-    console.log("Please provide a country and city.");
+    console.log(chalk.yellow("City or country not provided. Attempting to auto-detect location..."));
+    const ipInfo = await getIpInfo();
+    if (ipInfo && ipInfo.city && ipInfo.country) {
+      city = ipInfo.city;
+      country = ipInfo.country;
+      console.log(chalk.green(`Detected location: ${city}, ${country}`));
+    } else {
+      console.log(chalk.red("Failed to auto-detect location. Please provide a country and city."));
+      return;
+    }
+  }
+
+  let prayerTimes;
+  try {
+    prayerTimes = await getPrayerTimesData(country, city);
+  } catch (err) {
+    console.error(chalk.red("Failed to fetch prayer times. Please check your internet connection or city/country names."));
     return;
   }
 
-
-   const prayerTimes = await getPrayerTimesData(country, city);
-
-   const toDelete = ["Sunrise", "Imsak", "Midnight", "Firstthird", "Lastthird"];
-   toDelete.forEach((d) =>
-     prayerTimes.hasOwnProperty(d) ? delete prayerTimes[d] : ""
-   );
+  const toDelete = ["Sunrise", "Imsak", "Midnight", "Firstthird", "Lastthird"];
+  toDelete.forEach((d) =>
+    prayerTimes.hasOwnProperty(d) ? delete prayerTimes[d] : ""
+  );
 
   console.log(` 🕌 ${city}, ${country} Prayer Times 🕌`);
   console.log(` 📆 ${new Date().toDateString()}📆  \n`);
 
   const currentPrayer = getCurrentPrayer(prayerTimes);
-  const nextPrayer = getNextPrayerTime(prayerTimes);
+  let nextPrayer = getNextPrayerTime(prayerTimes);
 
-  const currentPrayerTime = prayerTimes[currentPrayer];
-  const nextPrayerTime = prayerTimes[nextPrayer.name];
+  let nextPrayerTime;
+  let nextDifference;
+  let isNextDay = false;
 
-  const [currentHour, currentMinute] = currentPrayerTime.split(":").map(Number);
-  const [nextHour, nextMinute] = nextPrayerTime.split(":").map(Number);
+  if (!nextPrayer) {
+    // It is past Isha, fetch tomorrow's Fajr
+    isNextDay = true;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tmrFormat = formatDate(tomorrow);
+    
+    let tomorrowPrayerTimes;
+    try {
+      tomorrowPrayerTimes = await getPrayerTimesData(country, city, tmrFormat);
+    } catch (err) {
+      console.error(chalk.red("Failed to fetch next day's prayer times."));
+      return;
+    }
+    
+    const tomorrowFajrTime = tomorrowPrayerTimes["Fajr"];
+    const [fajrHour, fajrMinute] = tomorrowFajrTime.split(":").map(Number);
+    const fajrMoment = moment().add(1, 'days').hours(fajrHour).minutes(fajrMinute);
+    
+    nextPrayer = { name: "Fajr" };
+    nextPrayerTime = tomorrowFajrTime;
+    nextDifference = fajrMoment.fromNow();
+  } else {
+    nextPrayerTime = prayerTimes[nextPrayer.name];
+    const [nextHour, nextMinute] = nextPrayerTime.split(":").map(Number);
+    const nextPrayerMoment = moment().hours(nextHour).minutes(nextMinute);
+    nextDifference = nextPrayerMoment.fromNow();
+  }
 
-  const currentMoment = moment().hours(currentHour).minutes(currentMinute);
-  const nextPrayerMoment = moment().hours(nextHour).minutes(nextMinute);
+  let currentPrayerTime = "N/A";
+  let currentDifference = "";
+  if (currentPrayer) {
+    currentPrayerTime = prayerTimes[currentPrayer];
+    const [currentHour, currentMinute] = currentPrayerTime.split(":").map(Number);
+    const currentMoment = moment().hours(currentHour).minutes(currentMinute);
+    currentDifference = currentMoment.fromNow();
+    console.log(`Current Prayer: ${currentPrayer} - ${currentPrayerTime} | ${currentDifference}`);
+  } else {
+    console.log(`Current Prayer: Before Fajr`);
+  }
 
-  const currentDifference = currentMoment.fromNow();
-  const nextDifference = nextPrayerMoment.fromNow();
-
-  console.log(`Current Prayer: ${currentPrayer} - ${currentPrayerTime} | ${currentDifference}`);
-  // console.log(`Next Prayer: ${nextPrayer.name} - ${nextPrayerTime} | Insha'allah ${nextDifference}\n`);
-  console.log()
+  console.log();
   console.log("Prayer Times for the Day:");
-  console.log(`
-  ${chalk.cyan("Fajr")}     -->   ${nextPrayerTime == prayerTimes.Fajr ? `${chalk.green.bold(prayerTimes.Fajr)} Insha'allah ${nextDifference}`: chalk.green(prayerTimes.Fajr)}
-  ${chalk.cyan("Dhuhr")}    -->   ${nextPrayerTime == prayerTimes.Dhuhr ? `${chalk.green.bold(prayerTimes.Dhuhr)} Insha'allah ${nextDifference}`: chalk.green(prayerTimes.Dhuhr)}
-  ${chalk.cyan("Asr")}      -->   ${nextPrayerTime == prayerTimes.Asr ? `${chalk.green.bold(prayerTimes.Asr)} Insha'allah ${nextDifference}`: chalk.green(prayerTimes.Asr)}
-  ${chalk.cyan("Maghrib")}  -->   ${nextPrayerTime == prayerTimes.Maghrib ? `${chalk.green.bold(prayerTimes.Maghrib)} Insha'allah ${nextDifference}`: chalk.green(prayerTimes.Maghrib)}
-  ${chalk.cyan("Isha")}     -->   ${nextPrayerTime == prayerTimes.Isha ? `${chalk.green.bold(prayerTimes.Isha)} Insha'allah ${nextDifference}`: chalk.green(prayerTimes.Isha)}
-  `);
+  
+  const printRow = (name, time) => {
+    let highlight = false;
+    if (!isNextDay && nextPrayer && nextPrayer.name === name) {
+      highlight = true;
+    } else if (isNextDay && name === "Fajr") {
+      highlight = true;
+    }
+    
+    if (highlight) {
+      return `  ${chalk.cyan(name.padEnd(7))}  -->   ${chalk.green.bold(time)} Insha'allah ${nextDifference}`;
+    } else {
+      return `  ${chalk.cyan(name.padEnd(7))}  -->   ${chalk.green(time)}`;
+    }
+  };
+
+  console.log(printRow("Fajr", prayerTimes.Fajr));
+  console.log(printRow("Dhuhr", prayerTimes.Dhuhr));
+  console.log(printRow("Asr", prayerTimes.Asr));
+  console.log(printRow("Maghrib", prayerTimes.Maghrib));
+  console.log(printRow("Isha", prayerTimes.Isha));
 };
 
 // Call the printPrayerTimes function to display prayer times
